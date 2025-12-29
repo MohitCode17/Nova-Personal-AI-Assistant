@@ -7,7 +7,20 @@ const App = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSendMessage = () => {
+  const callServer = async (message) => {
+    const response = await fetch(`http://localhost:3600/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    const result = await response.json();
+    return result.message;
+  };
+
+  const handleSendMessage = async () => {
     if (!input.trim()) return;
 
     const userMessage = {
@@ -20,7 +33,12 @@ const App = () => {
     setLoading(true);
 
     try {
-      // Logic for API Call
+      const assistantResponse = await callServer(input);
+
+      setMessages((prevMessage) => [
+        ...prevMessage,
+        { role: "assistant", content: assistantResponse },
+      ]);
     } catch (error) {
       console.error("Error while send message", error);
       setMessages((prevMessage) => [
