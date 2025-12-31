@@ -10,6 +10,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@langchain/langgraph": "^1.0.7",
     "@langchain/openai": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
