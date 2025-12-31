@@ -1,19 +1,17 @@
 import { agent } from "./graph.js";
 
-async function main() {
+export async function assistant(userInput) {
   const response = await agent.invoke(
     {
       messages: [
         {
           role: "human",
-          content: "Hello, how are you?",
+          content: userInput,
         },
       ],
     }
     // { recursionLimit: 5 } // LATER THIS WILL BE UNCOMMENT WHEN TOOL LOGICS WILL BE ADDED TO GRAPH.
   );
 
-  console.log("Final Response from Agent:", JSON.stringify(response, null, 2));
+  return response.messages.at(-1).content;
 }
-
-main();
