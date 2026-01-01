@@ -1,6 +1,9 @@
 import { ChatOpenAI } from "@langchain/openai";
 
-export const model = new ChatOpenAI({
-  model: "gpt-5-mini-2025-08-07",
-  maxCompletionTokens: 250,
-});
+export function createModel(tools) {
+  return new ChatOpenAI({
+    model: "gpt-5-mini-2025-08-07",
+    maxCompletionTokens: 600,
+    reasoning: { effort: "low" },
+  }).bindTools(tools);
+}

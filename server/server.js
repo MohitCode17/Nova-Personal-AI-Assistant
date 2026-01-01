@@ -1,9 +1,7 @@
-import express, { json } from "express";
+import "dotenv/config";
+import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import { assistant } from "./agent/agent.js";
-
-dotenv.config();
 
 const app = express();
 
