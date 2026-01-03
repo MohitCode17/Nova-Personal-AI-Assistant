@@ -8,7 +8,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
 
   const callServer = async (message) => {
-    const response = await fetch(`http://localhost:3600/api/chat`, {
+    const response = await fetch(`http://localhost:3001/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
