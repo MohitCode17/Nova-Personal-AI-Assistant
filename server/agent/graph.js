@@ -11,8 +11,14 @@ const toolsNode = new ToolNode(tools);
 // Call Agent Node
 async function callAgent(state) {
   try {
-    const MAX_MESSAGES = 8;
-    const trimmedMessages = state.messages.slice(-MAX_MESSAGES);
+    // const MAX_MESSAGES = 8;
+    // const trimmedMessages = state.messages.slice(-MAX_MESSAGES);
+
+    const systemMsg = state.messages.find((m) => m.role === "system");
+    const recent = state.messages.slice(-6);
+
+    const trimmedMessages = systemMsg ? [systemMsg, ...recent] : recent;
+
     const response = await model.invoke(trimmedMessages);
     return { messages: [response] };
   } catch (error) {
