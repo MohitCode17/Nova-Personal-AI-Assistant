@@ -1,5 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { TavilySearch } from "@langchain/tavily";
+import crypto from "crypto";
 import { google } from "googleapis";
 import { z } from "zod";
 
@@ -137,4 +138,69 @@ const getEvents = tool(
   }
 );
 
-export const tools = [webSearch, getEvents];
+const createEvent = tool(
+  async ({ summary, date, startTime, endTime, timeZone, attendees }) => {
+    console.log("LLM Params:", {
+      summary,
+      date,
+      startTime,
+      endTime,
+      timeZone,
+      attendees,
+    });
+    try {
+      const startDateTime = `${date}T${startTime}:00`;
+      const endDateTime = `${date}T${endTime}:00`;
+
+      const response = await calendar.events.insert({
+        calendarId: "primary",
+        sendUpdates: "all",
+        requestBody: {
+          summary,
+          start: {
+            dateTime: startDateTime,
+            timeZone,
+          },
+          end: {
+            dateTime: endDateTime,
+            timeZone,
+          },
+          attendees,
+        },
+      });
+
+      console.log("Response:", response);
+
+      if (response.data?.id) {
+        return `Meeting "${summary}" has been scheduled successfully.`;
+      }
+
+      return "Couldn't create a meeting!";
+    } catch (error) {
+      console.error("createEvent error:", error);
+      return "Failed to create the meeting due to an internal error.";
+    }
+  },
+  {
+    name: "createEvent",
+    description:
+      "Create a calendar meeting using local date, time, and timezone.",
+    schema: z.object({
+      summary: z.string().describe("The title of the event"),
+      date: z.string().describe("Event date in YYYY-MM-DD"),
+      startTime: z.string().describe("Start time in HH:mm (24-hour)"),
+      endTime: z.string().describe("End time in HH:mm (24-hour)"),
+      timeZone: z.string().describe("IANA timezone string"),
+      attendees: z
+        .array(
+          z.object({
+            email: z.string().describe("The email of the attendee"),
+            displayName: z.string().describe("Then name of the attendee."),
+          })
+        )
+        .optional(),
+    }),
+  }
+);
+
+export const tools = [webSearch, getEvents, createEvent];
