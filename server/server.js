@@ -44,14 +44,14 @@ app.get("/callback", async (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, thread_id } = req.body;
 
     if (!message)
       return res
         .status(400)
         .json({ message: "Invalid query, message is required field." });
 
-    const result = await assistant(message);
+    const result = await assistant(message, thread_id);
 
     res.status(200).json({ message: result });
   } catch (error) {

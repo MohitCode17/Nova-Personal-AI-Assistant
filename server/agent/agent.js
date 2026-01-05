@@ -1,8 +1,9 @@
 import { agent } from "./graph.js";
 
-export async function assistant(userInput) {
+export async function assistant(userInput, thread_id) {
   const currentDateTime = new Date().toISOString();
   const timeZoneString = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const response = await agent.invoke(
     {
       messages: [
@@ -71,7 +72,12 @@ TIME & TIMEZONE CONTEXT:
         },
       ],
     },
-    { recursionLimit: 6 }
+    {
+      recursionLimit: 6,
+      configurable: {
+        thread_id: String(thread_id),
+      },
+    }
   );
 
   return response.messages.at(-1).content;

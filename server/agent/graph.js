@@ -3,6 +3,7 @@ import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { createModel } from "./model.js";
 import { tools } from "./tools.js";
 import { ToolMessage } from "@langchain/core/messages";
+import { checkpointer } from "./memory.js";
 
 const model = createModel(tools);
 
@@ -62,4 +63,4 @@ const graph = new StateGraph(MessagesAnnotation)
   });
 
 // Compiling the graph and export it.
-export const agent = graph.compile();
+export const agent = graph.compile({ checkpointer: checkpointer });

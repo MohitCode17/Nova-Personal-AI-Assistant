@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 
+// GENERATE THREAD_ID FOR ASSISTANT MEMORY
+const getThreadId = () => {
+  let id = localStorage.getItem("thread_id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("thread_id", id);
+  }
+  return id;
+};
+
 const App = () => {
+  const threadIdRef = useRef(getThreadId());
   const chatEndRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
@@ -13,7 +24,7 @@ const App = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, thread_id: threadIdRef.current }),
     });
 
     const result = await response.json();
