@@ -95,7 +95,7 @@ const App = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
+              className={`w-fit rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
                 msg.role === "user"
                   ? "ml-auto bg-indigo-600/90"
                   : "mr-auto bg-neutral-800/80"
