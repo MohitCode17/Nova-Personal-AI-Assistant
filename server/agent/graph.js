@@ -9,21 +9,50 @@ const model = createModel(tools);
 
 const toolsNode = new ToolNode(tools);
 
+function trimMessages(messages, limit = 8) {
+  const result = [];
+  for (let i = messages.length - 1; i >= 0 && result.length < limit; i--) {
+    const msg = messages[i];
+    result.unshift(msg);
+
+    // if tool message → also keep the assistant tool_call before it
+    if (msg.constructor.name === ToolMessage) {
+      const prev = messages[i - 1];
+      if (prev?.tool_calls) {
+        result.unshift(prev);
+        i--;
+      }
+    }
+  }
+  return result;
+}
+
 // Call Agent Node
 async function callAgent(state) {
   try {
-    // const MAX_MESSAGES = 8;
-    // const trimmedMessages = state.messages.slice(-MAX_MESSAGES);
-
     const systemMsg = state.messages.find((m) => m.role === "system");
-    const recent = state.messages.slice(-6);
+    const trimmed = trimMessages(state.messages, 8);
 
-    const trimmedMessages = systemMsg ? [systemMsg, ...recent] : recent;
+    const finalMessages = systemMsg
+      ? [systemMsg, ...trimmed.filter((m) => m.role !== "system")]
+      : trimmed;
 
-    const response = await model.invoke(trimmedMessages);
+    const response = await model.invoke(finalMessages);
     return { messages: [response] };
   } catch (error) {
-    console.log("Call agent failed:", error);
+    if (error.message.startsWith("MISSING_EMAIL")) {
+      const name = error.message.split(":")[1];
+      return {
+        messages: [
+          {
+            role: "assistant",
+            content: `I don’t have an email for ${name}. Could you please provide it?`,
+          },
+        ],
+      };
+    }
+
+    throw error;
   }
 }
 
@@ -33,15 +62,6 @@ const whereToGo = (state) => {
   // If we already have a tool result, force final answer
   if (lastMessage instanceof ToolMessage) {
     return "callAgent";
-  }
-
-  // Prevent multiple tool calls
-  const hasToolResult = state.messages.some(
-    (m) => m.constructor.name === "ToolMessage"
-  );
-
-  if (hasToolResult) {
-    return "__end__";
   }
 
   if (lastMessage.tool_calls?.length > 0) {

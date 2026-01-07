@@ -1,8 +1,12 @@
+import fs from "node:fs";
+import path from "node:path";
 import { tool } from "@langchain/core/tools";
 import { TavilySearch } from "@langchain/tavily";
 import crypto from "crypto";
 import { google } from "googleapis";
 import { z } from "zod";
+
+const CONTACT_PATH = path.join(process.cwd(), "contact.json");
 
 const tavily = new TavilySearch({
   maxResults: 5,
@@ -55,7 +59,6 @@ const webSearch = tool(
 
 const getEvents = tool(
   async (params) => {
-    console.log("Calling getEvents with Params:", params);
     const { day, q } = params;
 
     const now = new Date();
@@ -140,15 +143,39 @@ const getEvents = tool(
 
 const createEvent = tool(
   async ({ summary, date, startTime, endTime, timeZone, attendees }) => {
-    console.log("LLM Params:", {
-      summary,
-      date,
-      startTime,
-      endTime,
-      timeZone,
-      attendees,
-    });
     try {
+      let resolvedAttendees = [];
+
+      if (attendees?.length) {
+        let contacts = null;
+
+        for (const a of attendees ?? []) {
+          // Case 1: Email explicitly provided → trust user
+          if (a.email) {
+            resolvedAttendees.push({
+              email: a.email,
+              displayName: a.displayName,
+            });
+            continue;
+          }
+          // Case 2: Name only → now load contacts
+          if (!contacts) {
+            contacts = JSON.parse(fs.readFileSync(CONTACT_PATH, "utf-8"));
+            console.log("Contacts", contacts);
+          }
+          const key = a.displayName.toLowerCase();
+
+          if (contacts[key]) {
+            resolvedAttendees.push({
+              email: contacts[key].email,
+              displayName: contacts[key].name,
+            });
+          } else {
+            throw new Error(`MISSING_EMAIL:${a.displayName}`);
+          }
+        }
+      }
+
       const startDateTime = `${date}T${startTime}:00`;
       const endDateTime = `${date}T${endTime}:00`;
 
@@ -165,11 +192,9 @@ const createEvent = tool(
             dateTime: endDateTime,
             timeZone,
           },
-          attendees,
+          attendees: resolvedAttendees,
         },
       });
-
-      console.log("Response:", response);
 
       if (response.data?.id) {
         return `Meeting "${summary}" has been scheduled successfully.`;
@@ -194,8 +219,11 @@ const createEvent = tool(
       attendees: z
         .array(
           z.object({
-            email: z.string().describe("The email of the attendee"),
-            displayName: z.string().describe("Then name of the attendee."),
+            email: z.string().describe("The email of the attendee").optional(),
+            displayName: z
+              .string()
+              .describe("Then name of the attendee.")
+              .optional(),
           })
         )
         .optional(),
