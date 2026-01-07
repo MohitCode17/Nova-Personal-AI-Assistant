@@ -45,8 +45,8 @@ This project was built from scratch as a **career-focused showcase**, proving re
 
 ## Demo
 
-![Nova Chat Demo](https://drive.google.com/file/d/1St1fGsBTTu8IXdMf7_bSKMBSvD8dI0AA/view?usp=drive_link)
-![Nova Architectual Graph Demo](https://drive.google.com/file/d/1O0fMXlzWQLxQcyBAQWZVioh7dNVrxOMq/view?usp=drive_link)
+![Nova Chat Demo](./assets/Nova%20demo%20image.png)
+![Nova Architectual Graph Demo](./assets/Nova%20graph.png)
 
 ---
 
